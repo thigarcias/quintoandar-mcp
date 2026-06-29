@@ -129,7 +129,13 @@ def _download_image(url: str, dest: Path, session: requests.Session) -> None:
     dest.write_bytes(r.content)
 
 
-def _process_listing(src: dict, out_dir: Path, session: requests.Session, baixar_fotos: bool = True) -> dict:
+def _process_listing(
+    src: dict,
+    out_dir: Path,
+    session: requests.Session,
+    baixar_fotos: bool = True,
+    max_fotos_baixar: int | None = None,
+) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     result: dict = {
@@ -155,7 +161,7 @@ def _process_listing(src: dict, out_dir: Path, session: requests.Session, baixar
             "url": purl,
             "localPath": "",
         }
-        if baixar_fotos:
+        if baixar_fotos and (max_fotos_baixar is None or idx < max_fotos_baixar):
             img_dir = out_dir / "images"
             img_dir.mkdir(exist_ok=True)
             file_name = f"{idx:03d}_{_safe(img_hash)[:40]}.jpg"
@@ -428,7 +434,7 @@ def buscar_imoveis(
             src["id"] = h.get("_id", src.get("id"))
             pid = str(src["id"])
             try:
-                result = _process_listing(src, pasta_saida / pid, session, baixar_fotos=baixar_fotos)
+                result = _process_listing(src, pasta_saida / pid, session, baixar_fotos=baixar_fotos, max_fotos_baixar=5)
                 all_results.append(result)
             except Exception as e:  # noqa: BLE001
                 all_results.append({"id": pid, "erro": str(e)})
