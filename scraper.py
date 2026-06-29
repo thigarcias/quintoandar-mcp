@@ -187,30 +187,42 @@ def _process_listing(
 # ──────────────────────────────────────────────
 # JS desabilitado + bloqueio de recursos: ~1.4s/imóvel (vs. API bloqueada por anti-bot).
 
-_pw_instance = None   # playwright context manager
-_pw_browser = None    # browser reutilizado entre chamadas
-_pw_context = None    # context com JS desabilitado
-_pw_page = None       # página reutilizada (navega entre URLs)
+import threading
+import atexit
+
+_pw_storage = threading.local()
+_all_instances = []
+_instances_lock = threading.Lock()
 
 
 def _get_pw_page():
     """Retorna (ou cria) uma página Playwright otimizada para scraping."""
-    global _pw_instance, _pw_browser, _pw_context, _pw_page
+    _pw_instance = getattr(_pw_storage, "instance", None)
+    _pw_browser = getattr(_pw_storage, "browser", None)
+    _pw_context = getattr(_pw_storage, "context", None)
+    _pw_page = getattr(_pw_storage, "page", None)
+
     if _pw_page is not None:
         try:
             _pw_page.url  # verifica se ainda está vivo
             return _pw_page
         except Exception:
             _pw_page = None
+            _pw_storage.page = None
 
     from playwright.sync_api import sync_playwright
 
     if _pw_instance is None:
         _pw_instance = sync_playwright().start()
+        _pw_storage.instance = _pw_instance
+        with _instances_lock:
+            _all_instances.append(_pw_instance)
     if _pw_browser is None:
         _pw_browser = _pw_instance.chromium.launch(headless=True)
+        _pw_storage.browser = _pw_browser
     if _pw_context is None:
         _pw_context = _pw_browser.new_context(java_script_enabled=False)
+        _pw_storage.context = _pw_context
 
     _pw_page = _pw_context.new_page()
     _pw_page.route(
@@ -221,12 +233,17 @@ def _get_pw_page():
             else route.abort()
         ),
     )
+    _pw_storage.page = _pw_page
     return _pw_page
 
 
 def fechar_browser() -> None:
     """Fecha o browser Playwright singleton (opcional — chamada na saída)."""
-    global _pw_instance, _pw_browser, _pw_context, _pw_page
+    _pw_instance = getattr(_pw_storage, "instance", None)
+    _pw_browser = getattr(_pw_storage, "browser", None)
+    _pw_context = getattr(_pw_storage, "context", None)
+    _pw_page = getattr(_pw_storage, "page", None)
+
     for obj in (_pw_page, _pw_context, _pw_browser):
         try:
             if obj is not None:
@@ -238,7 +255,26 @@ def fechar_browser() -> None:
             _pw_instance.stop()
         except Exception:
             pass
-    _pw_instance = _pw_browser = _pw_context = _pw_page = None
+        with _instances_lock:
+            if _pw_instance in _all_instances:
+                _all_instances.remove(_pw_instance)
+
+    _pw_storage.instance = None
+    _pw_storage.browser = None
+    _pw_storage.context = None
+    _pw_storage.page = None
+
+
+@atexit.register
+def _fechar_todos_browsers():
+    with _instances_lock:
+        for instance in list(_all_instances):
+            try:
+                instance.stop()
+            except Exception:
+                pass
+        _all_instances.clear()
+
 
 
 def _fetch_house_pw(property_id: str) -> dict:

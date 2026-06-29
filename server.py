@@ -62,7 +62,7 @@ mcp = FastMCP(
 )
 
 @mcp.tool()
-def buscar_imovel(
+async def buscar_imovel(
     id_ou_url: str,
     pasta_saida: str | None = None,
 ) -> dict:
@@ -81,13 +81,15 @@ def buscar_imovel(
         quartos, banheiros, área, fotos (com caminhos locais) e URL de origem.
         Em caso de erro, retorna {"erro": "<mensagem>"}.
     """
+    import anyio
     try:
         pid = extract_id(id_ou_url)
         out = (Path(pasta_saida) if pasta_saida else _default_output()) / pid
-        result = buscar_imovel_por_id(pid, out)
+        result = await anyio.to_thread.run_sync(buscar_imovel_por_id, pid, out)
         return result
     except Exception as e:  # noqa: BLE001
         return {"erro": str(e)}
+
 
 
 @mcp.tool()
@@ -233,7 +235,7 @@ def buscar_imoveis(
 
 
 @mcp.tool()
-def buscar_lote(
+async def buscar_lote(
     ids_ou_urls: list[str],
     pasta_saida: str | None = None,
     segundos_entre_requisicoes: float = 2.0,
@@ -261,9 +263,12 @@ def buscar_lote(
           - "resultados": lista com o resultado de cada item (dados do imóvel ou erro)
           - "pasta_saida": caminho onde os dados foram salvos
     """
+    import anyio
     out = Path(pasta_saida) if pasta_saida else _default_output()
     try:
-        results = _buscar_lote(ids_ou_urls, out, delay=segundos_entre_requisicoes)
+        results = await anyio.to_thread.run_sync(
+            _buscar_lote, ids_ou_urls, out, segundos_entre_requisicoes
+        )
         sucessos = [r for r in results if "erro" not in r]
         falhas = [r for r in results if "erro" in r]
         return {
@@ -275,6 +280,7 @@ def buscar_lote(
         }
     except Exception as e:  # noqa: BLE001
         return {"erro": str(e)}
+
 
 
 @mcp.tool()
