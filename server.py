@@ -416,8 +416,9 @@ def ler_imovel(
             except Exception:  # noqa: BLE001
                 continue
 
-        content.append(Image(data=base64.b64encode(img_bytes).decode(), format="jpeg"))
-        entregues += 1
+        if img_bytes:
+            content.append(Image(data=img_bytes, format="jpeg"))
+            entregues += 1
 
     # Persiste localPaths recém-preenchidos
     data_atualizado = {**data, "photos": data.get("photos", [])}
