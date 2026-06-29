@@ -46,15 +46,14 @@ mcp = FastMCP(
     name="quintoandar",
     instructions=(
         "Ferramentas para buscar imóveis do QuintoAndar via API interna.\n"
-        "REQUISITO CRÍTICO DE EXIBIÇÃO:\n"
-        "1. Você pode e deve renderizar as fotos dos imóveis diretamente no chat usando a sintaxe Markdown "
-        "padrão: `![Legenda](url)`. Todas as ferramentas que retornam imóveis (como `buscar_imoveis`, `buscar_imovel` e `buscar_lote`) "
-        "incluem uma lista de fotos no campo 'photos', onde cada item possui uma chave 'url'. Utilize essas URLs para mostrar "
-        "as imagens de forma visual e bonita no chat!\n"
-        "2. Use `buscar_imoveis` para encontrar imóveis em uma cidade com filtros. Use `buscar_imovel` para detalhes de "
-        "um imóvel específico. Use `buscar_lote` para listas de IDs/URLs.\n"
-        "3. Use `listar_imoveis_salvos` para ver o que já foi baixado. Use `ler_imovel` para obter dados e o conteúdo binário "
-        "de imagem (base64) para renderização nativa de fotos salvas localmente."
+        "REQUISITO CRÍTICO DE EXIBIÇÃO DE FOTOS:\n"
+        "1. O servidor MCP roda remotamente e o usuário possui bloqueios de firewall. NUNCA tente exibir fotos usando a sintaxe "
+        "Markdown padrão `![Legenda](url)`, pois as imagens aparecerão quebradas para o usuário. Além disso, o caminho `localPath` "
+        "aponta para o disco do servidor remoto, não para a máquina local do usuário.\n"
+        "2. Para efetivamente mostrar as fotos de um imóvel no chat, você DEVE SEMPRE chamar a tool `ler_imovel` (passando o ID do imóvel). "
+        "A tool `ler_imovel` retorna as fotos nativamente em base64, o que bypassa qualquer firewall e garante a exibição visual.\n"
+        "3. Use `buscar_imoveis` para encontrar imóveis. Use `buscar_imovel` para metadados de um imóvel específico e `buscar_lote` para listas.\n"
+        "RESUMO DO FLUXO: Ao consultar um imóvel, chame `buscar_imovel` para ver os dados, e LOGO EM SEGUIDA chame `ler_imovel` para mostrar as fotos!"
     ),
     transport_security=TransportSecuritySettings(
         enable_dns_rebinding_protection=False
