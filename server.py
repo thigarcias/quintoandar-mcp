@@ -80,7 +80,9 @@ async def serve_image(request: Request):
     if foto_idx < 0 or foto_idx >= len(fotos):
         return JSONResponse({"error": "Indice de foto invalido"}, status_code=404)
         
-    return FileResponse(path=fotos[foto_idx])
+    response = FileResponse(path=fotos[foto_idx])
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    return response
 
 @mcp.tool()
 async def buscar_imovel(
