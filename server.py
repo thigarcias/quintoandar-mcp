@@ -402,6 +402,7 @@ def ler_imovel(
 
     resumo = {k: v for k, v in data.items() if k != "photos"}
     resumo["total_fotos"] = data.get("photosCount", 0)
+    resumo["photos_base64"] = []
     content: list = [resumo]
 
     if max_fotos <= 0:
@@ -446,6 +447,24 @@ def ler_imovel(
                 continue
 
         if img_bytes:
+            try:
+                from PIL import Image as PILImage
+                import io
+                
+                img = PILImage.open(io.BytesIO(img_bytes))
+                img.thumbnail((480, 360))
+                buf = io.BytesIO()
+                img.save(buf, format='JPEG', quality=65)
+                img_bytes = buf.getvalue()
+                
+                b64_str = base64.b64encode(img_bytes).decode("utf-8")
+                resumo["photos_base64"].append({
+                    "subtitle": photo.get("subtitle") or "",
+                    "data": f"data:image/jpeg;base64,{b64_str}"
+                })
+            except Exception:
+                pass
+                
             content.append(Image(data=img_bytes, format="jpeg"))
             entregues += 1
 
