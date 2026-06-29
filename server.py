@@ -205,6 +205,7 @@ def buscar_imoveis(
                     "preco_venda": r.get("salePrice"),
                     "mobiliado": r.get("isFurnished"),
                     "fotos": r.get("photosCount", 0),
+                    "photos": r.get("photos", []),
                 })
 
         return {
