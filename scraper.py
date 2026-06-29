@@ -380,6 +380,7 @@ def buscar_imoveis(
     delay: float = 1.0,
     session: requests.Session | None = None,
     baixar_fotos: bool = False,
+    limite: int | None = None,
 ) -> list[dict]:
     """
     Busca imóveis por cidade usando a API de listagem do QuintoAndar.
@@ -412,6 +413,8 @@ def buscar_imoveis(
 
     all_results: list[dict] = []
     for page in range(1, paginas + 1):
+        if limite is not None and len(all_results) >= limite:
+            break
         body = _build_search_body(cidade, page_index=page, business_context=business_context, extra_filters=extra)
         r = session.post(SEARCH_API, data=json.dumps(body, ensure_ascii=False), headers=HEADERS, timeout=30)
         r.raise_for_status()
@@ -419,6 +422,8 @@ def buscar_imoveis(
         if not hits:
             break
         for h in hits:
+            if limite is not None and len(all_results) >= limite:
+                break
             src = h.get("_source", {})
             src["id"] = h.get("_id", src.get("id"))
             pid = str(src["id"])
@@ -428,6 +433,8 @@ def buscar_imoveis(
             except Exception as e:  # noqa: BLE001
                 all_results.append({"id": pid, "erro": str(e)})
         if page < paginas:
+            if limite is not None and len(all_results) >= limite:
+                break
             time.sleep(delay)
 
     return all_results

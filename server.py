@@ -106,6 +106,7 @@ def buscar_imoveis(
     proximo_metro: bool = False,
     tipos: list[str] | None = None,
     baixar_fotos: bool = False,
+    limite: int | None = None,
 ) -> dict:
     """
     Busca imóveis disponíveis em uma cidade usando a API interna do QuintoAndar,
@@ -137,6 +138,7 @@ def buscar_imoveis(
         tipos: Lista de tipos aceitos. Ex: ["apartamento", "casa", "studio"].
         baixar_fotos: Se True, baixa todas as fotos de cada imóvel durante a busca.
                       Padrão False — deixa a busca rápida e baixa fotos sob demanda via ler_imovel.
+        limite: Quantidade máxima de imóveis a retornar e processar. Útil para buscas rápidas.
 
     Returns:
         Dicionário com:
@@ -161,6 +163,7 @@ def buscar_imoveis(
         "aceita_pet": aceita_pet or None,
         "proximo_metro": proximo_metro or None,
         "tipos": tipos,
+        "limite": limite,
     }.items() if v is not None}
 
     try:
@@ -183,6 +186,7 @@ def buscar_imoveis(
             perto_metro=proximo_metro,
             tipos=tipos,
             baixar_fotos=baixar_fotos,
+            limite=limite,
         )
 
         imoveis_resumo = []
