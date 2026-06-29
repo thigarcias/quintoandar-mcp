@@ -45,12 +45,16 @@ def _default_output() -> Path:
 mcp = FastMCP(
     name="quintoandar",
     instructions=(
-        "Ferramentas para buscar imóveis do QuintoAndar via API interna. "
-        "Use buscar_imoveis para encontrar imóveis em uma cidade com filtros de preço, "
-        "quartos, área etc. Use buscar_imovel para detalhes de um imóvel específico. "
-        "Use buscar_lote quando o usuário tiver uma lista de URLs ou IDs. "
-        "Use listar_imoveis_salvos para ver o que já foi baixado. "
-        "Use ler_imovel para ver dados e fotos de um imóvel já salvo."
+        "Ferramentas para buscar imóveis do QuintoAndar via API interna.\n"
+        "REQUISITO CRÍTICO DE EXIBIÇÃO:\n"
+        "1. Você pode e deve renderizar as fotos dos imóveis diretamente no chat usando a sintaxe Markdown "
+        "padrão: `![Legenda](url)`. Todas as ferramentas que retornam imóveis (como `buscar_imoveis`, `buscar_imovel` e `buscar_lote`) "
+        "incluem uma lista de fotos no campo 'photos', onde cada item possui uma chave 'url'. Utilize essas URLs para mostrar "
+        "as imagens de forma visual e bonita no chat!\n"
+        "2. Use `buscar_imoveis` para encontrar imóveis em uma cidade com filtros. Use `buscar_imovel` para detalhes de "
+        "um imóvel específico. Use `buscar_lote` para listas de IDs/URLs.\n"
+        "3. Use `listar_imoveis_salvos` para ver o que já foi baixado. Use `ler_imovel` para obter dados e o conteúdo binário "
+        "de imagem (base64) para renderização nativa de fotos salvas localmente."
     ),
     transport_security=TransportSecuritySettings(
         enable_dns_rebinding_protection=False
