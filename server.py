@@ -411,4 +411,14 @@ def ler_imovel(
 
 
 if __name__ == "__main__":
-    mcp.run()
+    import os
+    import sys
+
+    # Se a variável PORT estiver presente (como no Railway) ou se for passado '--sse'
+    if "PORT" in os.environ or "--sse" in sys.argv:
+        port = int(os.environ.get("PORT", 8000))
+        mcp.settings.host = "0.0.0.0"
+        mcp.settings.port = port
+        mcp.run(transport="sse")
+    else:
+        mcp.run()
