@@ -161,6 +161,7 @@ def _process_listing(
             "cover": (img_hash == cover),
             "url": purl,
             "localPath": "",
+            "imageUrl": f"https://quintoandar-mcp-production.up.railway.app/img/{src.get('id')}/{idx}",
         }
         if baixar_fotos and (max_fotos_baixar is None or idx < max_fotos_baixar):
             img_dir = out_dir / "images"
