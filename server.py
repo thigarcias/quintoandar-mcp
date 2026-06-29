@@ -29,6 +29,7 @@ import json
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP, Image
+from mcp.server.transport_security import TransportSecuritySettings
 
 from scraper import (
     buscar_imovel_por_id,
@@ -50,6 +51,9 @@ mcp = FastMCP(
         "Use buscar_lote quando o usuário tiver uma lista de URLs ou IDs. "
         "Use listar_imoveis_salvos para ver o que já foi baixado. "
         "Use ler_imovel para ver dados e fotos de um imóvel já salvo."
+    ),
+    transport_security=TransportSecuritySettings(
+        enable_dns_rebinding_protection=False
     ),
 )
 
