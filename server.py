@@ -60,6 +60,28 @@ mcp = FastMCP(
     ),
 )
 
+from starlette.requests import Request
+from starlette.responses import FileResponse, JSONResponse
+
+@mcp.custom_route("/img/{imovel_id}/{foto_idx:int}", methods=["GET"])
+async def serve_image(request: Request):
+    """
+    Rota HTTP pública para servir as imagens baixadas.
+    Permite que widgets HTML carreguem as fotos via URL direta sem inflar o contexto do LLM.
+    """
+    imovel_id = request.path_params["imovel_id"]
+    foto_idx = request.path_params["foto_idx"]
+    img_dir = _default_output() / imovel_id / "images"
+    
+    if not img_dir.exists():
+        return JSONResponse({"error": "Imovel nao encontrado"}, status_code=404)
+    
+    fotos = sorted(img_dir.glob("*.jpg"))
+    if foto_idx < 0 or foto_idx >= len(fotos):
+        return JSONResponse({"error": "Indice de foto invalido"}, status_code=404)
+        
+    return FileResponse(path=fotos[foto_idx])
+
 @mcp.tool()
 async def buscar_imovel(
     id_ou_url: str,
@@ -378,7 +400,6 @@ def ler_imovel(
 
     resumo = {k: v for k, v in data.items() if k != "photos"}
     resumo["total_fotos"] = data.get("photosCount", 0)
-    resumo["photos_base64"] = []
     content: list = [resumo]
 
     if max_fotos <= 0:
@@ -423,11 +444,6 @@ def ler_imovel(
                 continue
 
         if img_bytes:
-            b64_str = base64.b64encode(img_bytes).decode("utf-8")
-            resumo["photos_base64"].append({
-                "subtitle": photo.get("subtitle") or "",
-                "data": f"data:image/jpeg;base64,{b64_str}"
-            })
             content.append(Image(data=img_bytes, format="jpeg"))
             entregues += 1
 
