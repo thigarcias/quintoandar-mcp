@@ -41,6 +41,7 @@ API_FIELDS = [
     "isFurnished", "installations", "listingTags",
     "activeSpecialConditions", "categories",
     "coverImage", "imageList", "imageCaptionList",
+    "suites", "iptu", "amenities",
 ]
 
 CITY_BOUNDS = {
@@ -434,7 +435,7 @@ def buscar_imoveis(
             src["id"] = h.get("_id", src.get("id"))
             pid = str(src["id"])
             try:
-                result = _process_listing(src, pasta_saida / pid, session, baixar_fotos=baixar_fotos, max_fotos_baixar=5)
+                result = _process_listing(src, pasta_saida / pid, session, baixar_fotos=baixar_fotos)
                 all_results.append(result)
             except Exception as e:  # noqa: BLE001
                 all_results.append({"id": pid, "erro": str(e)})
